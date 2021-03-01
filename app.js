@@ -26,6 +26,26 @@ const ItemCtrl = (function(){
     logData: function(){
       return data;
     },
+    addItem: function(name, claories){
+      let ID;
+
+      //create ID
+      if(data.items.length > 0){
+        ID = data.items[data.items.length - 1].id + 1;
+      }else {
+        ID = 0;
+      }
+
+      //Calories to number
+      calories = parseInt(claories);
+
+      //create new Item
+      newItem = new Item(ID, name, claories);
+
+      data.items.push(newItem);
+
+      return newItem;
+    },
     getItems: function(){
       return data.items;
     }
@@ -37,7 +57,10 @@ const ItemCtrl = (function(){
 const UICtrl = (function(){
 
   const UISelectors = {
-    listItems: '#list-items'
+    listItems: '#list-items',
+    addBtn: '#add-btn',
+    mealItem: '#meal-item',
+    caloriesItem: '#calories-item'
   }
   
   //Public Methods
@@ -55,6 +78,17 @@ const UICtrl = (function(){
        });
 
        document.querySelector(UISelectors.listItems).innerHTML = html;
+    },
+
+    getSelectors: function(){
+      return UISelectors;
+    },
+
+    getItemInput(){
+      return{
+        name: document.querySelector(UISelectors.mealItem).value,
+        calories: document.querySelector(UISelectors.caloriesItem).value
+      }
     }
   }
 })()
@@ -62,6 +96,27 @@ const UICtrl = (function(){
 
 //App Controller
 const App = (function(ItemCtrl, UICtrl){
+
+  const loadEventListeners = function(){
+
+    //UI selectors
+    const UISlectors = UICtrl.getSelectors();
+
+    //Add food item and calorie
+    document.querySelector(UISlectors.addBtn).addEventListener('click', itemAddSubmit);
+  }
+
+  const itemAddSubmit = function(e){
+    e.preventDefault();
+
+    const input = UICtrl.getItemInput();
+
+    if(input.name !== '' && input.calories !== ''){
+      const newItem = ItemCtrl.addItem(input.name, input.calories);
+    }
+
+   
+  }
   
   //Public Methods
   return{
@@ -70,10 +125,10 @@ const App = (function(ItemCtrl, UICtrl){
       const items = ItemCtrl.getItems();
 
       //Populate items with the UICtrl
-      UICtrl.populateListItems(items)
+      UICtrl.populateListItems(items);
+
+      loadEventListeners();
     }
-
-
   }
 })(ItemCtrl, UICtrl);
 
