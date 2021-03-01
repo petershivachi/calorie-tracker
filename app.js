@@ -23,10 +23,7 @@ const ItemCtrl = (function(){
 
   //Public Methods
   return {
-    logData: function(){
-      return data;
-    },
-    addItem: function(name, claories){
+    addItem: function(name, calories){
       let ID;
 
       //create ID
@@ -37,10 +34,10 @@ const ItemCtrl = (function(){
       }
 
       //Calories to number
-      calories = parseInt(claories);
+      calories = parseInt(calories);
 
       //create new Item
-      newItem = new Item(ID, name, claories);
+      newItem = new Item(ID, name, calories);
 
       data.items.push(newItem);
 
@@ -48,6 +45,25 @@ const ItemCtrl = (function(){
     },
     getItems: function(){
       return data.items;
+    },
+
+    getTotalCalories: function(){
+      let total = 0;
+
+      //Loop through items and add calories
+      data.items.forEach(function(item){
+        total = total + item.calories;
+      });
+
+      //set total cal in data structures
+      data.totalCalories = total;
+
+      //return total
+      return data.totalCalories;
+    },
+
+    logData: function(){
+      return data;
     }
   }
 })();
@@ -60,7 +76,8 @@ const UICtrl = (function(){
     listItem: '#list-item',
     addBtn: '#add-btn',
     mealItem: '#meal-item',
-    caloriesItem: '#calories-item'
+    caloriesItem: '#calories-item',
+    totalCalories: '#total-calories'
   }
   
   //Public Methods
@@ -110,6 +127,10 @@ const UICtrl = (function(){
       document.querySelector(UISelectors.listItem).insertAdjacentElement('beforeend', li);
     },
 
+    showTotalCalories: function(totalCalories){
+      document.querySelector(UISelectors.totalCalories).textContent = totalCalories;
+    },
+
     clearInput: function(){
       document.querySelector(UISelectors.mealItem).value = '';
       document.querySelector(UISelectors.caloriesItem).value = '';
@@ -148,6 +169,12 @@ const App = (function(ItemCtrl, UICtrl){
 
       //Add the item to the UI
       UICtrl.addListItem(newItem);
+
+      //Compute the number of calories
+      const totalCalories = ItemCtrl.getTotalCalories()
+
+      //show the total calories in the Ui
+      UICtrl.showTotalCalories(totalCalories);
 
       //clear input
       UICtrl.clearInput()
