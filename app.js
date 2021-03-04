@@ -47,6 +47,24 @@ const ItemCtrl = (function(){
       return data.items;
     },
 
+    getItemToEditById: function(id){
+      let found = null;
+
+      data.items.forEach(function(item){
+        if(item.id === id){
+          found === item;
+        }
+      });
+
+      return found;
+    },
+    
+    setCurrentItem: function(item){
+      data.currentItem = item
+    },
+     getCurrentItem: function(){
+       return data.currentItem;
+     },
     getTotalCalories: function(){
       let total = 0;
 
@@ -69,12 +87,15 @@ const ItemCtrl = (function(){
 })();
 
 
-//UI Controller
+//UI CONTROLLER
 const UICtrl = (function(){
 
   const UISelectors = {
     listItem: '#list-item',
     addBtn: '#add-btn',
+    updateBtn: '#update-btn',
+    deleteBtn: '#delete-btn',
+    backBtn: '#back-btn',
     mealItem: '#meal-item',
     caloriesItem: '#calories-item',
     totalCalories: '#total-calories'
@@ -97,7 +118,7 @@ const UICtrl = (function(){
        document.querySelector(UISelectors.listItem).innerHTML = html;
     },
 
-    getItemInput(){
+    getItemInput: function(){
       return{
         name: document.querySelector(UISelectors.mealItem).value,
         calories: document.querySelector(UISelectors.caloriesItem).value
@@ -131,12 +152,31 @@ const UICtrl = (function(){
       document.querySelector(UISelectors.totalCalories).textContent = totalCalories;
     },
 
+    addItemToForm: function(){
+      document.querySelector(UISelectors.mealItem).value = ItemCtrl.getCurrentItem().name;
+      document.querySelector(UISelectors.caloriesItem).value = ItemCtrl.getCurrentItem().calories;
+      UICtrl.showEditState();
+    },
+
     clearInput: function(){
       document.querySelector(UISelectors.mealItem).value = '';
       document.querySelector(UISelectors.caloriesItem).value = '';
     },
+    clearEditState: function(){
+      UICtrl.clearInput()
+      document.querySelector(UISelectors.updateBtn).style.display = 'none',
+      document.querySelector(UISelectors.deleteBtn).style.display = 'none',
+      document.querySelector(UISelectors.backBtn).style.display = 'none'
+      document.querySelector(UISelectors.addBtn).style.display = 'inline'
+    },
+    showEditState: function(){
+      document.querySelector(UISelectors.updateBtn).style.display = 'inline',
+      document.querySelector(UISelectors.deleteBtn).style.display = 'inline',
+      document.querySelector(UISelectors.backBtn).style.display = 'inline'
+      document.querySelector(UISelectors.addBtn).style.display = 'none'
+    },
 
-    HideList: function(){
+    hideList: function(){
       document.querySelector(UISelectors.listItem).style.display = 'none';
     },
 
@@ -147,7 +187,7 @@ const UICtrl = (function(){
 })()
 
 
-//App Controller
+//APP CONTROLLER
 const App = (function(ItemCtrl, UICtrl){
 
   const loadEventListeners = function(){
@@ -157,6 +197,9 @@ const App = (function(ItemCtrl, UICtrl){
 
     //Add food item and calorie
     document.querySelector(UISlectors.addBtn).addEventListener('click', itemAddSubmit);
+
+    //Edit icon click event
+    document.querySelector(UISlectors.listItem).addEventListener('click', itemUpdateSubmit)
   }
 
   const itemAddSubmit = function(e){
@@ -179,25 +222,55 @@ const App = (function(ItemCtrl, UICtrl){
       //clear input
       UICtrl.clearInput()
     }
+  }
 
-   
+  //Item update submit
+  const itemUpdateSubmit = function(e){
+    e.preventDefault();
+
+    if(e.target.classList.contains('edit-item')){
+      //Get the id of the selected item
+      const listId = e.target.parentNode.parentNode.id;
+
+      const listIdArr = listId.split('-');
+
+      const id = parseInt(listIdArr[1]);
+
+      const itemToEdit = ItemCtrl.getItemToEditById(id);
+
+      //set current item,
+      ItemCtrl.setCurrentItem(itemToEdit);
+
+      //add item to form
+      UICtrl.addItemToForm()
+    }
   }
   
   //Public Methods
   return{
     init: function(){
+      //Clear edit state
+
+      UICtrl.clearEditState();
+
       //Fetch Items from ItemCtrl
       const items = ItemCtrl.getItems();
 
 
       // Check if any items
       if(items.length === 0){
-        UICtrl.HideList();
+        UICtrl.hideList();
       } else {
         // Populate list with items
         UICtrl.populateListItems(items);
 
       }
+
+      // Get total calories
+      const totalCalories = ItemCtrl.getTotalCalories();
+      // Add total calories to UI
+      UICtrl.showTotalCalories(totalCalories);
+
 
       loadEventListeners();
     }
